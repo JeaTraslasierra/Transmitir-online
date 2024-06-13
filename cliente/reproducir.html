@@ -1,0 +1,186 @@
+
+<!--<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transmisión de Audio en Vivo</title>
+</head>
+<body>
+  <h1>Transmisión de Audio en Vivo</h1>
+  
+  <audio id="remoteAudio" autoplay controls></audio>
+  
+  <script>
+    const socket = io();
+    let peerConnection;
+
+    // Establecer conexión WebRTC
+    async function startConnection() {
+      peerConnection = new RTCPeerConnection();
+
+      // Escuchar eventos de ICE candidates
+      peerConnection.onicecandidate = (event) => {
+        if (event.candidate) {
+          socket.emit('iceCandidate', event.candidate);
+        }
+      };
+
+      // Escuchar el stream de audio remoto
+      peerConnection.ontrack = (event) => {
+        document.getElementById('remoteAudio').srcObject = event.streams[0];
+      };
+
+      // Obtener el stream de audio local
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+      // Añadir el stream de audio local a la conexión
+      stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+
+      // Crear y enviar oferta al servidor
+      const offer = await peerConnection.createOffer();
+      await peerConnection.setLocalDescription(offer);
+      socket.emit('offer', offer);
+    }
+
+    // Escuchar eventos de oferta y respuesta del servidor
+    socket.on('offer', async (offer) => {
+      peerConnection = new RTCPeerConnection();
+
+      // Establecer stream de audio local
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+
+      // Escuchar eventos de ICE candidates
+      peerConnection.onicecandidate = (event) => {
+        if (event.candidate) {
+          socket.emit('iceCandidate', event.candidate);
+        }
+      };
+
+      // Escuchar el stream de audio remoto
+      peerConnection.ontrack = (event) => {
+        document.getElementById('remoteAudio').srcObject = event.streams[0];
+      };
+
+      // Establecer la descripción remota y enviar respuesta al servidor
+      await peerConnection.setRemoteDescription(offer);
+      const answer = await peerConnection.createAnswer();
+      await peerConnection.setLocalDescription(answer);
+      socket.emit('iceCandidate', answer);
+    });
+
+    // Escuchar eventos de ICE candidates del servidor
+    socket.on('iceCandidate', async (candidate) => {
+      await peerConnection.addIceCandidate(candidate);
+    });
+
+    startConnection();
+  </script>
+</body>
+</html> -->
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audio en Vivo</title>
+ <script type="module">
+    import { io } from "https://cdn.socket.io/4.3.2/socket.io.esm.min.js";
+    const socket = io();
+
+
+//const audioPlayer = document.getElementById('audioPlayer');
+
+    // Declarar una variable para almacenar la URL del audio
+let audioUrl;
+
+
+    
+//document.getElementById('btn').addEventListener('click', (e) => {
+  //    e.preventDefault();
+      
+// Dentro del evento 'audio' en el cliente
+socket.on('audio', (audioData) => {
+    // Convertir los datos de audio recibidos en un Blob
+    
+    const audioBlob = new Blob([audioData], { type: 'audio/webm' });
+    
+console.log("datos del servidor: "+ audioBlob);
+
+    // Crear una URL para el Blob
+    const audioUrl = URL.createObjectURL(audioBlob);
+console.log("la url es: "+audioUrl);
+    // Obtener el elemento del reproductor de audio
+    const audioPlayer = document.getElementById('audioPlayer');
+
+    // Establecer la URL del audio en el reproductor de audio
+    audioPlayer.src = audioUrl;
+
+    // Reproducir el audio
+   audioPlayer.play();
+audioPlayer.addEventListener('loadedmetadata', () => {
+            // Reproducir el audio una vez que se haya cargado
+            audioPlayer.play();
+        });
+
+//});
+      
+    });
+    
+  </script>
+
+</head>
+<body>
+
+<audio id="audioPlayer" controls></audio>
+<!--<button id="btn"> play</button>-->
+  
+</div>
+</body>
+</html> 
+<!--
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audio en Vivo</title>
+  <script type="module">
+    import { io } from "https://cdn.socket.io/4.3.2/socket.io.esm.min.js";
+    const socket = io();
+
+    let audioContext = new AudioContext();
+    let mediaSource = audioContext.createMediaElementSource(document.getElementById('audioPlayer'));
+    let mediaStreamDestination = audioContext.createMediaStreamDestination();
+    mediaSource.connect(mediaStreamDestination);
+
+    socket.on('audio', (audioData) => {
+      // Decodificar los datos de audio
+      audioContext.decodeAudioData(audioData.buffer, (decodedData) => {
+        // Crear un buffer de audio
+        let audioBuffer = audioContext.createBuffer(decodedData.numberOfChannels, decodedData.length, decodedData.sampleRate);
+        audioBuffer.copyToChannel(decodedData.getChannelData(0), 0);
+
+        // Crear un buffer de audio fuente
+        let audioBufferSource = audioContext.createBufferSource();
+        audioBufferSource.buffer = audioBuffer;
+        audioBufferSource.connect(mediaStreamDestination);
+
+        // Reproducir el buffer de audio fuente
+        audioBufferSource.start();
+      });
+    });
+  </script>
+</head>
+<body>
+  <audio id="audioPlayer" controls></audio>
+</body>
+</html> 
+
+
+
+ 

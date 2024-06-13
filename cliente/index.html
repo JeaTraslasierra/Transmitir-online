@@ -1,0 +1,1165 @@
+<!--
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audio en Vivo</title>
+<script type="module" >
+import {io} from "https://cdn.socket.io/4.3.2/socket.io.esm.min.js"
+const socket= io();
+let mensaje= document.getElementById('mensaje')
+let input=document.getElementById('messageInput')
+
+socket.on("chat message", (msg)=>{
+     const item= `<li> ${msg}</li>`
+     mensaje.insertAdjacentHTML('beforeend', item)
+   })
+
+
+document.getElementById('btnEnviar').addEventListener('click',(e)=>{
+ e.preventDefault();
+  console.log(input.value)
+  socket.emit('chat message', input.value)
+   
+  input.value=""
+})
+
+</script>
+  
+  
+<style>
+
+#miChat{
+  border: 1px solid peru;
+  padding: 10px;
+  max-width: 400px;
+  margin: 0 auto;
+  overflow-y: auto;
+  height: 700px; /* Altura máxima del contenedor, añadir desplazamiento vertical si es necesario */
+  background-color: peru;
+display: flex;
+}
+#btnEnviar{
+background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+#messageInput {
+  width: calc(100% - 20px); /* Anchura del input, menos el relleno */
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+
+#inputContainer {
+  margin-top: auto; /* Empujar el contenedor de entrada al fondo */
+  display: flex;
+}
+  
+</style>
+  
+</head>
+<body>
+  <section id="miChat">
+    <ul id="mensaje"></ul>
+    <div id="inputContainer">
+<input type="text" id="messageInput" placeholder="Escribe tu mensaje...">
+    <button id="btnEnviar" >Enviar</button>
+      
+    </div>
+
+    
+  </section>
+</body>
+
+</html> 
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audio en Vivo</title>
+  <script type="module">
+    import { io } from "https://cdn.socket.io/4.3.2/socket.io.esm.min.js";
+    const socket = io();
+
+
+const audioPlayer = document.getElementById('audioPlayer');
+
+    socket.on('audio', (audioData) => {
+      // Crear un objeto URL para los datos de audio recibidos
+      const audioBlob = new Blob([audioData]);
+      const audioUrl = URL.createObjectURL(audioBlob);
+  console.log("la url del audio es: "+audioUrl);
+      // Establecer la URL del audio en el reproductor de audio
+      audioPlayer.src = audioUrl;
+
+      // Reproducir el audio
+      audioPlayer.play();
+    });
+
+
+
+
+
+    let mensaje = document.getElementById('mensaje');
+    let input = document.getElementById('messageInput');
+    let mediaRecorder;
+    let audioStream;
+    
+    
+
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(stream => {
+        audioStream = stream;
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = e => {
+          socket.emit('audio', e.data); // Enviar datos de audio al servidor
+        };
+      })
+      .catch(err => {
+        console.error('Error al acceder al micrófono:', err);
+      });
+
+    socket.on("chat message", (msg) => {
+      const item = `<li> ${msg}</li>`;
+      mensaje.insertAdjacentHTML('beforeend', item);
+      console.log("el mensaje w llea es: "+msg)
+    });
+
+    document.getElementById('btnEnviar').addEventListener('click', (e) => {
+      e.preventDefault();
+      console.log(input.value);
+      socket.emit('chat message', input.value);
+      input.value = "";
+    });
+
+    document.getElementById('btnIniciarAudio').addEventListener('click', (e) => {
+      e.preventDefault();
+      if (mediaRecorder.state === 'inactive') {
+        mediaRecorder.start();
+        console.log('Grabación de audio iniciada.');
+      } else {
+        mediaRecorder.stop();
+        console.log('Grabación de audio detenida.');
+      }
+    });
+  </script>
+
+  <style>
+    #miChat {
+      border: 1px solid peru;
+      padding: 10px;
+      max-width: 400px;
+      margin: 0 auto;
+      overflow-y: auto;
+      height: 700px;
+      background-color: peru;
+      display: flex;
+    }
+
+    #btnEnviar {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #btnIniciarAudio {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+
+    #messageInput {
+      width: calc(100% - 20px);
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+
+    #inputContainer {
+      margin-top: auto;
+      display: flex;
+    }
+  </style>
+</head>
+<body>
+<section id="miChat">
+  <ul id="mensaje"></ul>
+  <div id="inputContainer">
+    <input type="text" id="messageInput" placeholder="Escribe tu mensaje...">
+    <button id="btnEnviar">Enviar</button>
+    <button id="btnIniciarAudio">Iniciar Audio</button>
+  </div>
+</section>
+<div>
+<audio id="audioPlayer" controls></audio>
+
+  
+</div>
+</body>
+</html> 
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audio en Vivo</title>
+  <script type="module">
+    import { io } from "https://cdn.socket.io/4.3.2/socket.io.esm.min.js";
+    const socket = io();
+
+    let audioContext;
+    let mediaStream;
+    let mediaRecorder;
+
+    socket.on('connect', () => {
+      audioContext = new AudioContext();
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          mediaStream = stream;
+          const audioSource = audioContext.createMediaStreamSource(stream);
+          const audioProcessor = audioContext.createScriptProcessor(2048, 1, 1);
+
+          mediaRecorder = new MediaRecorder(stream);
+          mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) {
+              socket.emit('audio', e.data);
+            }
+          };
+
+          audioSource.connect(audioProcessor);
+          audioProcessor.connect(audioContext.destination);
+          audioProcessor.onaudioprocess = (e) => {
+            if (mediaRecorder.state === 'inactive') {
+              return;
+            }
+            mediaRecorder.start();
+          };
+        })
+        .catch(err => {
+          console.error('Error al acceder al micrófono:', err);
+        });
+    });
+
+    socket.on("chat message", (msg) => {
+      const mensaje = document.getElementById('mensaje');
+      const item = `<li>${msg}</li>`;
+      mensaje.insertAdjacentHTML('beforeend', item);
+    });
+
+    document.getElementById('btnEnviar').addEventListener('click', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('messageInput');
+      socket.emit('chat message', input.value);
+      input.value = "";
+    });
+
+    document.getElementById('btnIniciarAudio').addEventListener('click', (e) => {
+      e.preventDefault();
+      if (mediaRecorder.state === 'inactive') {
+        mediaRecorder.start();
+      } else {
+        mediaRecorder.stop();
+      }
+    });
+  </script>
+
+  <style>
+  #miChat {
+      border: 1px solid peru;
+      padding: 10px;
+      max-width: 400px;
+      margin: 0 auto;
+      overflow-y: auto;
+      height: 700px;
+      background-color: peru;
+      display: flex;
+    }
+
+    #btnEnviar {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #btnIniciarAudio {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+
+    #messageInput {
+      width: calc(100% - 20px);
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+
+    #inputContainer {
+      margin-top: auto;
+      display: flex;
+    }
+  </style>
+</head>
+<body>
+  <section id="miChat">
+    <ul id="mensaje"></ul>
+    <div id="inputContainer">
+      <input type="text" id="messageInput" placeholder="Escribe tu mensaje...">
+      <button id="btnEnviar">Enviar</button>
+      <button id="btnIniciarAudio">Iniciar Audio</button>
+    </div>
+  </section>
+<div>
+<audio id="audioPlayer" controls></audio>
+
+  
+</div>
+  
+</body>
+</html>
+
+<!--
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audio en Vivo</title>
+  <script type="module">
+    import { io } from "https://cdn.socket.io/4.3.2/socket.io.esm.min.js";
+    const socket = io();
+
+    let audioContext;
+    let mediaStream;
+    let audioSource;
+    let scriptProcessor;
+
+    // Inicializar AudioContext y obtener acceso al micrófono
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(stream => {
+        audioContext = new AudioContext();
+        mediaStream = stream;
+        audioSource = audioContext.createMediaStreamSource(stream);
+        scriptProcessor = audioContext.createScriptProcessor(4096, 1, 1);
+
+        // Conectar el micrófono al procesador de script y al destino de salida
+        audioSource.connect(scriptProcessor);
+        scriptProcessor.connect(audioContext.destination);
+
+        // Configurar el procesador de script para capturar audio en vivo
+        scriptProcessor.onaudioprocess = (e) => {
+          const audioData = e.inputBuffer.getChannelData(0);
+          socket.emit('audio', audioData); // Enviar datos de audio al servidor
+        };
+      })
+      .catch(err => {
+        console.error('Error al acceder al micrófono:', err);
+      });
+
+    socket.on("chat message", (msg) => {
+      const mensaje = document.getElementById('mensaje');
+      const item = `<li>${msg}</li>`;
+      mensaje.insertAdjacentHTML('beforeend', item);
+    });
+
+    document.getElementById('btnEnviar').addEventListener('click', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('messageInput');
+      socket.emit('chat message', input.value);
+      input.value = "";
+    });
+  </script>
+ <style>
+  #miChat {
+      border: 1px solid peru;
+      padding: 10px;
+      max-width: 400px;
+      margin: 0 auto;
+      overflow-y: auto;
+      height: 700px;
+      background-color: peru;
+      display: flex;
+    }
+
+    #btnEnviar {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #btnIniciarAudio {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+
+    #messageInput {
+      width: calc(100% - 20px);
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+
+    #inputContainer {
+      margin-top: auto;
+      display: flex;
+    }
+  </style>
+</head>
+<body>
+  <section id="miChat">
+    <ul id="mensaje"></ul>
+    <div id="inputContainer">
+      <input type="text" id="messageInput" placeholder="Escribe tu mensaje...">
+      <button id="btnEnviar">Enviar</button>
+    </div>
+  </section>
+</body>
+</html> -->
+
+<!--
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audio en Vivo</title>
+  <script type="module">
+    import { io } from "https://cdn.socket.io/4.3.2/socket.io.esm.min.js";
+    const socket = io();
+
+    let audioContext;
+    let mediaStream;
+    let audioSource;
+    let scriptProcessor;
+    let isSendingAudio = false; // Variable para controlar el envío de audio
+
+    // Función para iniciar o detener el envío de audio
+    function toggleAudioSending() {
+      if (!isSendingAudio) {
+        // Iniciar el envío de audio
+        startAudioSending();
+        isSendingAudio = true;
+      } else {
+        // Detener el envío de audio
+        stopAudioSending();
+        isSendingAudio = false;
+      }
+    }
+
+    // Función para iniciar el envío de audio al servidor
+    function startAudioSending() {
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          audioContext = new AudioContext();
+          mediaStream = stream;
+          audioSource = audioContext.createMediaStreamSource(stream);
+          scriptProcessor = audioContext.createScriptProcessor(4096, 1, 1);
+
+          // Conectar el micrófono al procesador de script y al destino de salida
+          audioSource.connect(scriptProcessor);
+          scriptProcessor.connect(audioContext.destination);
+
+          // Configurar el procesador de script para capturar audio en vivo
+          scriptProcessor.onaudioprocess = (e) => {
+            const audioData = e.inputBuffer.getChannelData(0);
+            socket.emit('audio', audioData); // Enviar datos de audio al servidor
+          };
+        })
+        .catch(err => {
+          console.error('Error al acceder al micrófono:', err);
+        });
+    }
+
+    // Función para detener el envío de audio al servidor
+    function stopAudioSending() {
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+        isSendingAudio = false;
+      }
+    }
+
+    // Escuchar eventos del servidor
+    socket.on("chat message", (msg) => {
+      const mensaje = document.getElementById('mensaje');
+      const item = `<li>${msg}</li>`;
+      mensaje.insertAdjacentHTML('beforeend', item);
+    });
+
+    // Añadir evento al botón de enviar mensaje
+    document.getElementById('btnEnviar').addEventListener('click', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('messageInput');
+      socket.emit('chat message', input.value);
+      input.value = "";
+    });
+
+    // Añadir evento al botón de iniciar/detener envío de audio
+    document.getElementById('btnIniciarAudio').addEventListener('click', (e) => {
+      e.preventDefault();
+      toggleAudioSending();
+    });
+  </script>
+ <style>
+  #miChat {
+      border: 1px solid peru;
+      padding: 10px;
+      max-width: 400px;
+      margin: 0 auto;
+      overflow-y: auto;
+      height: 700px;
+      background-color: peru;
+      display: flex;
+    }
+
+    #btnEnviar {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #btnIniciarAudio {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+
+    #messageInput {
+      width: calc(100% - 20px);
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+
+    #inputContainer {
+      margin-top: auto;
+      display: flex;
+    }
+  </style>
+</head>
+<body>
+  <section id="miChat">
+    <ul id="mensaje"></ul>
+    <div id="inputContainer">
+      <input type="text" id="messageInput" placeholder="Escribe tu mensaje...">
+      <button id="btnEnviar">Enviar</button>
+      <button id="btnIniciarAudio">Iniciar/Parar Audio</button> <!-- Botón para iniciar/detener el envío de audio 
+    </div>
+  </section>
+</body>
+</html> 
+   
+   
+   
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audio en Vivo</title>
+  <script type="module">
+    import { io } from "https://cdn.socket.io/4.3.2/socket.io.esm.min.js";
+    const socket = io();
+
+    let audioContext;
+    let mediaStream;
+    let audioSource;
+    let audioWorkletNode;
+    let isSendingAudio = false; // Variable para controlar el envío de audio
+
+    // Función para iniciar o detener el envío de audio
+    function toggleAudioSending() {
+      if (!isSendingAudio) {
+        // Iniciar el envío de audio
+        startAudioSending();
+        isSendingAudio = true;
+      } else {
+        // Detener el envío de audio
+        stopAudioSending();
+        isSendingAudio = false;
+      }
+    }
+
+    // Función para iniciar el envío de audio al servidor
+    async function startAudioSending() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioContext = new AudioContext();
+        mediaStream = stream;
+        audioSource = audioContext.createMediaStreamSource(stream);
+
+        // Registrar un nuevo trabajo de audio
+        await audioContext.audioWorklet.addModule('audioWorkletProcessor.js');
+
+        // Crear un AudioWorkletNode y conectarlo al micrófono y al destino de salida
+        audioWorkletNode = new AudioWorkletNode(audioContext, 'audio-processor');
+        audioSource.connect(audioWorkletNode);
+        audioWorkletNode.connect(audioContext.destination);
+
+        // Configurar el evento de salida del AudioWorkletNode para enviar datos de audio al servidor
+        audioWorkletNode.port.onmessage = (event) => {
+          socket.emit('audio', event.data); // Enviar datos de audio al servidor
+        };
+      } catch (error) {
+        console.error('Error al acceder al micrófono:', error);
+      }
+    }
+
+    // Función para detener el envío de audio al servidor
+    function stopAudioSending() {
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+        isSendingAudio = false;
+      }
+    }
+
+    // Escuchar eventos del servidor
+    socket.on("chat message", (msg) => {
+      const mensaje = document.getElementById('mensaje');
+      const item = `<li>${msg}</li>`;
+      mensaje.insertAdjacentHTML('beforeend', item);
+    });
+
+    // Añadir evento al botón de enviar mensaje
+    document.getElementById('btnEnviar').addEventListener('click', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('messageInput');
+      socket.emit('chat message', input.value);
+      input.value = "";
+    });
+
+    // Añadir evento al botón de iniciar/detener envío de audio
+    document.getElementById('btnIniciarAudio').addEventListener('click', (e) => {
+      e.preventDefault();
+      toggleAudioSending();
+    });
+  </script>
+ <style>
+  #miChat {
+      border: 1px solid peru;
+      padding: 10px;
+      max-width: 400px;
+      margin: 0 auto;
+      overflow-y: auto;
+      height: 700px;
+      background-color: peru;
+      display: flex;
+    }
+
+    #btnEnviar {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #btnIniciarAudio {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+
+    #messageInput {
+      width: calc(100% - 20px);
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+
+    #inputContainer {
+      margin-top: auto;
+      display: flex;
+    }
+  </style>
+</head>
+<body>
+  <section id="miChat">
+    <ul id="mensaje"></ul>
+    <div id="inputContainer">
+      <input type="text" id="messageInput" placeholder="Escribe tu mensaje...">
+      <button id="btnEnviar">Enviar</button>
+      <button id="btnIniciarAudio">Iniciar/Parar Audio</button> <!-- Botón para iniciar/detener el envío de audio 
+    </div>
+  </section>
+</body>
+</html> 
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audio en Vivo</title>
+  <script type="module">
+    import { io } from "https://cdn.socket.io/4.3.2/socket.io.esm.min.js";
+    const socket = io();
+
+    let audioContext;
+    let mediaStream;
+    let audioSource;
+    let audioWorkletNode;
+    let isSendingAudio = false; // Variable para controlar el envío de audio
+
+    // Función para iniciar o detener el envío de audio
+    function toggleAudioSending() {
+      if (!isSendingAudio) {
+        // Iniciar el envío de audio
+        startAudioSending();
+        isSendingAudio = true;
+      } else {
+        // Detener el envío de audio
+        stopAudioSending();
+        isSendingAudio = false;
+      }
+    }
+
+    // Función para iniciar el envío de audio al servidor
+    async function startAudioSending() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioContext = new AudioContext();
+        mediaStream = stream;
+        audioSource = audioContext.createMediaStreamSource(stream);
+
+        // Registrar un nuevo trabajo de audio
+        await audioContext.audioWorklet.addModule('audioWorkletProcessor.js');
+
+        // Crear un AudioWorkletNode y conectarlo al micrófono y al destino de salida
+        audioWorkletNode = new AudioWorkletNode(audioContext, 'audio-processor');
+        audioSource.connect(audioWorkletNode);
+        audioWorkletNode.connect(audioContext.destination);
+
+        // Configurar el evento de salida del AudioWorkletNode para enviar datos de audio al servidor
+        audioWorkletNode.port.onmessage = (event) => {
+          socket.emit('audio', event.data); // Enviar datos de audio al servidor
+        };
+      } catch (error) {
+        console.error('Error al acceder al micrófono:', error.message);
+        // Manejar el error de acceso al micrófono aquí
+      }
+    }
+
+    // Función para detener el envío de audio al servidor
+    function stopAudioSending() {
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+        isSendingAudio = false;
+      }
+    }
+
+    // Escuchar eventos del servidor
+    socket.on("chat message", (msg) => {
+      const mensaje = document.getElementById('mensaje');
+      const item = `<li>${msg}</li>`;
+      mensaje.insertAdjacentHTML('beforeend', item);
+    });
+
+    // Añadir evento al botón de enviar mensaje
+    document.getElementById('btnEnviar').addEventListener('click', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('messageInput');
+      socket.emit('chat message', input.value);
+      input.value = "";
+    });
+
+    // Añadir evento al botón de iniciar/detener envío de audio
+    document.getElementById('btnIniciarAudio').addEventListener('click', (e) => {
+      e.preventDefault();
+      toggleAudioSending();
+    });
+  </script>
+ <style>
+  #miChat {
+      border: 1px solid peru;
+      padding: 10px;
+      max-width: 400px;
+      margin: 0 auto;
+      overflow-y: auto;
+      height: 700px;
+      background-color: peru;
+      display: flex;
+    }
+
+    #btnEnviar {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #btnIniciarAudio {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+
+    #messageInput {
+      width: calc(100% - 20px);
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+
+    #inputContainer {
+      margin-top: auto;
+      display: flex;
+    }
+  </style>
+</head>
+<body>
+  <section id="miChat">
+    <ul id="mensaje"></ul>
+    <div id="inputContainer">
+      <input type="text" id="messageInput" placeholder="Escribe tu mensaje...">
+      <button id="btnEnviar">Enviar</button>
+      <button id="btnIniciarAudio">Iniciar/Parar Audio</button> <!-- Botón para iniciar/detener el envío de audio 
+    </div>
+  </section>
+</body>
+</html> 
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audio en Vivo</title>
+  <script type="module">
+    import { io } from "https://cdn.socket.io/4.3.2/socket.io.esm.min.js";
+    const socket = io();
+
+    let audioContext;
+    let mediaStream;
+    let audioSource;
+    let scriptProcessor;
+    let isSendingAudio = false; // Variable para controlar el envío de audio
+
+    // Función para iniciar o detener el envío de audio
+    function toggleAudioSending() {
+      if (!isSendingAudio) {
+        // Iniciar el envío de audio
+        startAudioSending();
+        isSendingAudio = true;
+      } else {
+        // Detener el envío de audio
+        stopAudioSending();
+        isSendingAudio = false;
+      }
+    }
+
+    // Función para iniciar el envío de audio al servidor
+    function startAudioSending() {
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          audioContext = new AudioContext({sampleRate:3000});
+          mediaStream = stream;
+          audioSource = audioContext.createMediaStreamSource(stream);
+          scriptProcessor = audioContext.createScriptProcessor(4096, 1, 1);
+
+          // Conectar el micrófono al procesador de script y al destino de salida
+          audioSource.connect(scriptProcessor);
+          scriptProcessor.connect(audioContext.destination);
+
+          // Configurar el procesador de script para capturar audio en vivo
+          scriptProcessor.onaudioprocess = (e) => {
+            
+const audioData = e.inputBuffer.getChannelData(0);
+      
+       
+socket.emit('audio', audioData); 
+
+         
+            
+            // Enviar datos de audio al servidor
+          };
+        })
+        .catch(err => {
+          console.error('Error al acceder al micrófono:', err);
+        });
+    }
+
+    // Función para detener el envío de audio al servidor
+    function stopAudioSending() {
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+        isSendingAudio = false;
+      }
+    }
+
+    // Escuchar eventos del servidor
+    socket.on("chat message", (msg) => {
+      const mensaje = document.getElementById('mensaje');
+      const item = `<li>${msg}</li>`;
+      mensaje.insertAdjacentHTML('beforeend', item);
+    });
+
+    // Añadir evento al botón de enviar mensaje
+    document.getElementById('btnEnviar').addEventListener('click', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('messageInput');
+      
+socket.emit('chat message', input.value);
+
+      
+      input.value = "";
+    });
+
+    // Añadir evento al botón de iniciar/detener envío de audio
+    document.getElementById('btnIniciarAudio').addEventListener('click', (e) => {
+      e.preventDefault();
+      toggleAudioSending();
+    });
+  </script>
+ <style>
+  #miChat {
+      border: 1px solid peru;
+      padding: 10px;
+      max-width: 400px;
+      margin: 0 auto;
+      overflow-y: auto;
+      height: 700px;
+      background-color: peru;
+      display: flex;
+    }
+
+    #btnEnviar {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #btnIniciarAudio {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+
+    #messageInput {
+      width: calc(100% - 20px);
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+
+    #inputContainer {
+      margin-top: auto;
+      display: flex;
+    }
+  </style>
+</head>
+<body>
+  <section id="miChat">
+    <ul id="mensaje"></ul>
+    <div id="inputContainer">
+      <input type="text" id="messageInput" placeholder="Escribe tu mensaje...">
+      <button id="btnEnviar">Enviar</button>
+      <button id="btnIniciarAudio">Iniciar/Parar Audio</button> <!-- Botón para iniciar/detener el envío de audio 
+    </div>
+  </section>
+</body>
+</html> -->
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audio en Vivo</title>
+  <script type="module">
+    import { io } from "https://cdn.socket.io/4.3.2/socket.io.esm.min.js";
+    const socket = io();
+
+    let mensaje = document.getElementById('mensaje');
+    let input = document.getElementById('messageInput');
+    let btnGrabar=document.getElementById("btnIniciarAudio");
+    let mediaRecorder;
+    let audioStream;
+    let intervalo;
+
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(stream => {
+        audioStream = stream;
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = e => {
+         
+socket.emit('audio', e.data);
+
+          // Enviar datos de audio al servidor
+        };
+      })
+      .catch(err => {
+        console.error('Error al acceder al micrófono:', err);
+      });
+      function enviar(){
+        
+       intervalo= setInterval(()=>{
+          mediaRecorder.stop();
+          console.log("se detuvo");
+       mediaRecorder.start();
+        },5000);
+       
+      }
+
+    socket.on("chat message", (msg) => {
+      const item = `<li> ${msg}</li>`;
+      mensaje.insertAdjacentHTML('beforeend', item);
+    });
+
+    document.getElementById('btnEnviar').addEventListener('click', (e) => {
+      e.preventDefault();
+      console.log(input.value);
+      socket.emit('chat message', input.value);
+      input.value = "";
+    });
+
+    document.getElementById('btnIniciarAudio').addEventListener('click', (e) => {
+      e.preventDefault();
+      if (mediaRecorder.state === 'inactive') {
+        mediaRecorder.start();
+        
+        btnGrabar.style.backgroundColor='red';
+        btnGrabar.textContent='Transmitiendo...';
+        console.log('Grabación de audio iniciada.');
+        enviar();
+      } else {
+        // detengo el intervalo
+        clearInterval(intervalo);
+        // detego la grabacion
+        mediaRecorder.stop();
+        // Detengo el flujo de sinifo del microfono.
+       audioStream.getTracks().forEach(track => track.stop());
+        btnGrabar.style.backgroundColor='#4CAF50';
+        btnGrabar.textContent='Iniciar Audio';
+        console.log('Grabación de audio detenida.');
+      }
+    });
+  </script>
+
+  <style>
+    #miChat {
+      border: 1px solid peru;
+      padding: 10px;
+      max-width: 400px;
+      margin: 0 auto;
+      overflow-y: auto;
+      height: 700px;
+      background-color: peru;
+      display: flex;
+    }
+
+    #btnEnviar {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #btnIniciarAudio {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+
+    #messageInput {
+      width: calc(100% - 20px);
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+
+    #inputContainer {
+      margin-top: auto;
+      display: flex;
+    }
+  </style>
+</head>
+<body>
+<section id="miChat">
+  <ul id="mensaje"></ul>
+  <div id="inputContainer">
+    <input type="text" id="messageInput" placeholder="Escribe tu mensaje...">
+    <button id="btnEnviar">Enviar</button>
+    <button id="btnIniciarAudio">Iniciar Audio</button>
+  </div>
+</section>
+</body>
+</html>
