@@ -1047,8 +1047,9 @@ socket.emit('chat message', input.value);
     let mediaRecorder;
     let audioStream;
     let intervalo;
-
-    navigator.mediaDevices.getUserMedia({ audio: true })
+ function activarMicrofono (){
+   
+navigator.mediaDevices.getUserMedia({ audio: true })
       .then(stream => {
         audioStream = stream;
         mediaRecorder = new MediaRecorder(stream);
@@ -1062,6 +1063,9 @@ socket.emit('audio', e.data);
       .catch(err => {
         console.error('Error al acceder al micrófono:', err);
       });
+   
+ }
+    activarMicrofono();
       function enviar(){
         
        intervalo= setInterval(()=>{
@@ -1087,6 +1091,7 @@ socket.emit('audio', e.data);
     document.getElementById('btnIniciarAudio').addEventListener('click', (e) => {
       e.preventDefault();
       if (mediaRecorder.state === 'inactive') {
+        activarMicrofono();
         mediaRecorder.start();
         
         btnGrabar.style.backgroundColor='red';
